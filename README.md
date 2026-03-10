@@ -279,4 +279,3 @@ This system demonstrates:
 ## 👨‍💻 Development
 
 Built with ❤️ for university thesis project.
-# certificate-verification-system
