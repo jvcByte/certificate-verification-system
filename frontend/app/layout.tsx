@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import Link from "next/link";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CertifyChain - Blockchain Certificate Verification",
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen`}>
+      <body className={` bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen`}>
         <Providers>
           <nav className="backdrop-blur-md bg-white/80 border-b border-gray-200 sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
