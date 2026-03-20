@@ -1,4 +1,6 @@
-
+=========================================================================================================================
+                                         First Deployement
+=========================================================================================================================
 == Logs ==
 
   CertificateRegistry deployed to: 0x1715cE4942218709FCEa7D14B485c778E0A8cB9a
@@ -81,3 +83,8 @@ All (1) contracts were verified!
 Transactions saved to: /home/jvcbyte/Downloads/skifi_cert_software/certificate-verification-system/contracts/broadcast/Deploy.s.sol/11155111/run-latest.json
 
 Sensitive values saved to: /home/jvcbyte/Downloads/skifi_cert_software/certificate-verification-system/contracts/cache/Deploy.s.sol/11155111/run-latest.json
+
+
+=========================================================================================================================
+                                         Second Deployement
+=========================================================================================================================
