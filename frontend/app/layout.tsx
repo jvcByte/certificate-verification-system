@@ -43,6 +43,9 @@ export default function RootLayout({
                   <Link href="/admin/revoke" className="px-2 sm:px-4 py-2 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-600 transition-colors font-medium text-xs sm:text-sm hidden sm:inline-block">
                     Revoke
                   </Link>
+                  <Link href="/admin/admins" className="px-2 sm:px-4 py-2 rounded-lg hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-colors font-medium text-xs sm:text-sm hidden sm:inline-block">
+                    Admins
+                  </Link>
                   <Link href="/student" className="px-2 sm:px-4 py-2 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-600 transition-colors font-medium text-xs sm:text-sm hidden md:inline-block">
                     Student
                   </Link>

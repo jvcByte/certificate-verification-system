@@ -81,6 +81,29 @@ export default function Home() {
             Verify Certificate
           </Link>
         </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 card-hover border border-gray-100 sm:col-span-2 lg:col-span-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Admin Management</h2>
+                <p className="text-sm sm:text-base text-gray-600">Add or remove admins and transfer contract ownership</p>
+              </div>
+            </div>
+            <Link
+              href="/admin/admins"
+              className="block sm:inline-block bg-gradient-to-r from-orange-500 to-amber-500 text-white py-2.5 sm:py-3 px-6 rounded-xl hover:shadow-lg transition-all text-center font-medium text-sm sm:text-base whitespace-nowrap"
+            >
+              Manage Admins
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Features Section */}
