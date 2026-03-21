@@ -23,7 +23,7 @@ forge install
 Create `.env` file:
 ```bash
 PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/YOUR_PROJECT_ID
 ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY
 ```
 
@@ -47,7 +47,7 @@ Test result: ok. 8 passed; 0 failed
 ```bash
 source .env
 forge script script/Deploy.s.sol:DeployScript \
-  --rpc-url $SEPOLIA_RPC_URL \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
   --broadcast \
   --verify \
   -vvvv
@@ -83,7 +83,7 @@ npm install
 Create `.env.local` file:
 ```bash
 NEXT_PUBLIC_CONTRACT_ADDRESS=0xYOUR_DEPLOYED_CONTRACT_ADDRESS
-NEXT_PUBLIC_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
 PINATA_JWT=YOUR_PINATA_JWT_TOKEN
 ```
 
@@ -124,7 +124,7 @@ vercel
 3. Import repository
 4. Add environment variables:
    - `NEXT_PUBLIC_CONTRACT_ADDRESS`
-   - `NEXT_PUBLIC_SEPOLIA_RPC_URL`
+   - `NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL`
    - `PINATA_JWT`
 5. Deploy
 
@@ -141,7 +141,7 @@ vercel
 open https://sepolia.etherscan.io/address/YOUR_CONTRACT_ADDRESS
 
 # Test read function
-cast call YOUR_CONTRACT_ADDRESS "admin()" --rpc-url $SEPOLIA_RPC_URL
+cast call YOUR_CONTRACT_ADDRESS "admin()" --rpc-url $BASE_SEPOLIA_RPC_URL
 ```
 
 ### 2. Test Frontend
@@ -178,7 +178,7 @@ cast call YOUR_CONTRACT_ADDRESS "admin()" --rpc-url $SEPOLIA_RPC_URL
 ### Contract Deployment Fails
 ```bash
 # Check balance
-cast balance YOUR_ADDRESS --rpc-url $SEPOLIA_RPC_URL
+cast balance YOUR_ADDRESS --rpc-url $BASE_SEPOLIA_RPC_URL
 
 # Get Sepolia ETH from faucet
 open https://sepoliafaucet.com
@@ -258,7 +258,7 @@ curl -X POST "https://api.pinata.cloud/pinning/pinFileToIPFS" \
 # Update smart contract (requires new deployment)
 cd contracts
 forge build
-forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast
+forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast
 
 # Update frontend
 cd frontend

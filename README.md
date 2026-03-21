@@ -92,14 +92,14 @@ cp .env.example .env
 Edit `.env` and add:
 ```
 PRIVATE_KEY=your_metamask_private_key
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
+BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/YOUR_INFURA_KEY
 ETHERSCAN_API_KEY=your_etherscan_api_key
 ```
 
 #### Step 5: Deploy to Sepolia
 ```bash
 source .env
-forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast --verify
+forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast --verify
 ```
 
 Save the deployed contract address!
@@ -124,7 +124,7 @@ cp .env.example .env.local
 Edit `.env.local` and add:
 ```
 NEXT_PUBLIC_CONTRACT_ADDRESS=0x... # From deployment
-NEXT_PUBLIC_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
+NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/YOUR_INFURA_KEY
 PINATA_JWT=your_pinata_jwt_token
 ```
 

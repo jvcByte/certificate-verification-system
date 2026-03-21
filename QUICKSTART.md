@@ -44,7 +44,7 @@ cd certificate-verification-system/contracts
 # Create .env file
 cat > .env << EOF
 PRIVATE_KEY=your_metamask_private_key
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/YOUR_PROJECT_ID
 ETHERSCAN_API_KEY=optional
 EOF
 
@@ -54,7 +54,7 @@ forge test
 
 # Deploy
 source .env
-forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast
+forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast
 
 # Copy the contract address from output!
 ```
@@ -70,7 +70,7 @@ npm install
 # Create .env.local file
 cat > .env.local << EOF
 NEXT_PUBLIC_CONTRACT_ADDRESS=0xYOUR_CONTRACT_ADDRESS_FROM_STEP_3
-NEXT_PUBLIC_SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/YOUR_PROJECT_ID
 PINATA_JWT=YOUR_PINATA_JWT_TOKEN
 EOF
 
@@ -146,7 +146,7 @@ You now have a working blockchain certificate verification system!
 cd contracts && forge test
 
 # Deploy contract
-forge script script/Deploy.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast
+forge script script/Deploy.s.sol --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast
 
 # Run frontend
 cd frontend && npm run dev
@@ -155,7 +155,7 @@ cd frontend && npm run dev
 npm run build
 
 # Check contract on Etherscan
-open https://sepolia.etherscan.io/address/YOUR_CONTRACT_ADDRESS
+open https://sepolia.basescan.org/address/YOUR_CONTRACT_ADDRESS
 ```
 
 ## Need Help?

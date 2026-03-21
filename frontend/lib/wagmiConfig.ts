@@ -8,6 +8,6 @@ export const config = createConfig({
     injected(),
   ],
   transports: {
-    [sepolia.id]: http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL),
   },
 });
