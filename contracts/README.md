@@ -33,7 +33,7 @@ Edit `.env` and fill in your values:
 
 ```env
 PRIVATE_KEY=your_wallet_private_key
-SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your_infura_key
+BASE_SEPOLIA_RPC_URL=https://base-sepolia.infura.io/v3/your_infura_key
 ETHERSCAN_API_KEY=your_etherscan_api_key
 ```
 
@@ -69,7 +69,7 @@ Uses `script/Deploy.s.sol`. The script reads `PRIVATE_KEY` from your environment
 
 ```shell
 forge script script/Deploy.s.sol:DeployScript \
-  --rpc-url $SEPOLIA_RPC_URL \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
   --broadcast \
   --verify \
   -vvvv
@@ -116,7 +116,7 @@ All admin management is done via `cast` using your owner private key.
 ```shell
 cast send <DEPLOYED_ADDRESS> \
   "addAdmin(address)" <NEW_ADMIN_ADDRESS> \
-  --rpc-url $SEPOLIA_RPC_URL \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
   --private-key $PRIVATE_KEY
 ```
 
@@ -125,7 +125,7 @@ cast send <DEPLOYED_ADDRESS> \
 ```shell
 cast send <DEPLOYED_ADDRESS> \
   "removeAdmin(address)" <ADMIN_ADDRESS> \
-  --rpc-url $SEPOLIA_RPC_URL \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
   --private-key $PRIVATE_KEY
 ```
 
@@ -134,7 +134,7 @@ cast send <DEPLOYED_ADDRESS> \
 ```shell
 cast call <DEPLOYED_ADDRESS> \
   "isAdmin(address)" <ADDRESS> \
-  --rpc-url $SEPOLIA_RPC_URL
+  --rpc-url $BASE_SEPOLIA_RPC_URL
 ```
 
 ### Transfer ownership
@@ -142,7 +142,7 @@ cast call <DEPLOYED_ADDRESS> \
 ```shell
 cast send <DEPLOYED_ADDRESS> \
   "transferOwnership(address)" <NEW_OWNER_ADDRESS> \
-  --rpc-url $SEPOLIA_RPC_URL \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
   --private-key $PRIVATE_KEY
 ```
 
