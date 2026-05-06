@@ -1,31 +1,132 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 import { WalletConnect } from '@/components/WalletConnect';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '@/lib/contract';
+import { validateCertHash, parseWeb3Error } from '@/lib/errors';
+import { useContractWriteWithError } from '@/hooks/useContractWrite';
 
 export default function RevokeCertificatePage() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
+  const publicClient = usePublicClient();
   const [certHash, setCertHash] = useState('');
 
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { 
+    writeContract, 
+    hash, 
+    isPending, 
+    isConfirming, 
+    isSuccess, 
+    error, 
+    setError, 
+    clearError 
+  } = useContractWriteWithError();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!certHash) return;
+    
+    clearError();
+
+    const validationError = validateCertHash(certHash);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    if (!isConnected || !address) {
+      setError({
+        title: 'Wallet Not Connected',
+        message: 'Please connect your wallet to continue.',
+      });
+      return;
+    }
+
+    // Pre-validate: Check if certificate exists
+    if (publicClient) {
+      try {
+        const exists = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'certificateExists',
+          args: [certHash as `0x${string}`],
+        });
+
+        if (!exists) {
+          setError({
+            title: 'Certificate Not Found',
+            message: 'No certificate exists with this hash.',
+            details: 'Please verify the certificate hash and try again.',
+          });
+          return;
+        }
+
+        // Check if already revoked
+        const cert = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'certificates',
+          args: [certHash as `0x${string}`],
+        });
+
+        if (cert && (cert as any).revoked) {
+          setError({
+            title: 'Already Revoked',
+            message: 'This certificate has already been revoked.',
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking certificate:', err);
+        // Continue anyway - let the contract handle it
+      }
+
+      // Pre-validate: Check if user is admin
+      try {
+        const isUserAdmin = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'isAdmin',
+          args: [address],
+        });
+
+        if (!isUserAdmin) {
+          setError({
+            title: 'Unauthorized Access',
+            message: 'Your wallet address is not authorized to perform this action.',
+            details: `Address: ${address}. Please contact the contract owner to grant admin privileges.`,
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        // Continue anyway - let the contract handle it
+      }
+    }
 
     try {
-      writeContract({
-        address: CONTRACT_ADDRESS,
-        abi: CONTRACT_ABI,
-        functionName: 'revokeCertificate',
-        args: [certHash as `0x${string}`],
-      });
+      writeContract(
+        {
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'revokeCertificate',
+          args: [certHash as `0x${string}`],
+        },
+        {
+          onError: (error) => {
+            console.error('Transaction error:', error);
+            const parsedError = parseWeb3Error(error, address);
+            setError(parsedError);
+          },
+        }
+      );
     } catch (err) {
       console.error('Error revoking certificate:', err);
-      alert('Failed to revoke certificate. Check console for details.');
+      setError({
+        title: 'Revocation Error',
+        message: err instanceof Error ? err.message : 'An unexpected error occurred.',
+      });
     }
   };
 
@@ -71,9 +172,10 @@ export default function RevokeCertificatePage() {
                 className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-mono text-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all outline-none"
                 placeholder="0x..."
                 required
+                disabled={isPending || isConfirming}
               />
               <p className="text-sm text-gray-500 mt-2">
-                Enter the certificate hash you want to revoke
+                Enter the 32-byte certificate hash (66 characters including 0x prefix)
               </p>
             </div>
 
@@ -92,19 +194,7 @@ export default function RevokeCertificatePage() {
         </form>
       )}
 
-      {error && (
-        <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 animate-fade-in">
-          <div className="flex items-start space-x-3">
-            <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <div>
-              <h3 className="font-semibold text-red-800 mb-1">Error</h3>
-              <p className="text-red-700 text-sm">{error.message}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} onDismiss={clearError} />}
 
       {isSuccess && (
         <div className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-8 animate-fade-in shadow-lg">
@@ -121,7 +211,7 @@ export default function RevokeCertificatePage() {
           <div className="bg-white rounded-xl p-4">
             <p className="text-sm font-semibold text-gray-600 mb-2">Transaction Hash</p>
             <a
-              href={`https://sepolia.etherscan.io/tx/${hash}`}
+              href={`https://sepolia.basescan.org/tx/${hash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 font-mono text-sm break-all hover:underline"
