@@ -1,21 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, usePublicClient } from 'wagmi';
 import { isAddress } from 'viem';
 import { WalletConnect } from '@/components/WalletConnect';
+import { ErrorDisplay } from '@/components/ErrorDisplay';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '@/lib/contract';
+import { validateAddress, parseWeb3Error } from '@/lib/errors';
+import { useContractWriteWithError } from '@/hooks/useContractWrite';
 
 type Action = 'add' | 'remove' | 'transfer';
 
 export default function AdminManagementPage() {
   const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
   const [targetAddress, setTargetAddress] = useState('');
   const [checkAddress, setCheckAddress] = useState('');
   const [action, setAction] = useState<Action>('add');
 
-  const { writeContract, data: txHash, isPending, error, reset } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { 
+    writeContract, 
+    hash: txHash, 
+    isPending, 
+    isConfirming, 
+    isSuccess, 
+    error, 
+    setError, 
+    clearError,
+    reset 
+  } = useContractWriteWithError();
 
   // Read owner
   const { data: owner } = useReadContract({
@@ -27,6 +40,90 @@ export default function AdminManagementPage() {
   // Check if connected wallet is owner
   const isOwner = address && owner && address.toLowerCase() === (owner as string).toLowerCase();
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    clearError();
+
+    const validationError = validateAddress(targetAddress);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    if (!isOwner) {
+      setError({
+        title: 'Unauthorized',
+        message: 'Only the contract owner can perform this action.',
+        details: `Current owner: ${owner}`,
+      });
+      return;
+    }
+
+    // Pre-validate based on action
+    if (publicClient) {
+      try {
+        const isTargetAdmin = await publicClient.readContract({
+          address: CONTRACT_ADDRESS,
+          abi: CONTRACT_ABI,
+          functionName: 'isAdmin',
+          args: [targetAddress as `0x${string}`],
+        });
+
+        if (action === 'add' && isTargetAdmin) {
+          setError({
+            title: 'Already an Admin',
+            message: 'This address is already an admin.',
+          });
+          return;
+        }
+
+        if (action === 'remove' && !isTargetAdmin) {
+          setError({
+            title: 'Not an Admin',
+            message: 'This address is not an admin.',
+          });
+          return;
+        }
+
+        // Prevent owner from removing themselves
+        if (action === 'remove' && targetAddress.toLowerCase() === (owner as string).toLowerCase()) {
+          setError({
+            title: 'Cannot Remove Owner',
+            message: 'The contract owner cannot remove their own admin role.',
+          });
+          return;
+        }
+      } catch (err) {
+        console.error('Error checking admin status:', err);
+        // Continue anyway - let the contract handle it
+      }
+    }
+
+    const fnMap: Record<Action, 'addAdmin' | 'removeAdmin' | 'transferOwnership'> = {
+      add: 'addAdmin',
+      remove: 'removeAdmin',
+      transfer: 'transferOwnership',
+    };
+
+    writeContract(
+      {
+        address: CONTRACT_ADDRESS,
+        abi: CONTRACT_ABI,
+        functionName: fnMap[action],
+        args: [targetAddress as `0x${string}`],
+      },
+      {
+        onError: (error) => {
+          console.error('Transaction error:', error);
+          const parsedError = parseWeb3Error(error, address);
+          setError(parsedError);
+        },
+      }
+    );
+  };
+
+  const addressValid = isAddress(targetAddress);
+
   // Check role of a queried address
   const { data: isCheckedAdmin, refetch: refetchCheck } = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -35,27 +132,6 @@ export default function AdminManagementPage() {
     args: isAddress(checkAddress) ? [checkAddress as `0x${string}`] : undefined,
     query: { enabled: isAddress(checkAddress) },
   });
-
-  const addressValid = isAddress(targetAddress);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!addressValid) return;
-    reset();
-
-    const fnMap: Record<Action, 'addAdmin' | 'removeAdmin' | 'transferOwnership'> = {
-      add: 'addAdmin',
-      remove: 'removeAdmin',
-      transfer: 'transferOwnership',
-    };
-
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: CONTRACT_ABI,
-      functionName: fnMap[action],
-      args: [targetAddress as `0x${string}`],
-    });
-  };
 
   const actionConfig = {
     add: {
@@ -145,7 +221,7 @@ export default function AdminManagementPage() {
             {(Object.keys(actionConfig) as Action[]).map((a) => (
               <button
                 key={a}
-                onClick={() => { setAction(a); reset(); }}
+                onClick={() => { setAction(a); reset(); clearError(); }}
                 className={`py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all ${
                   action === a
                     ? 'border-purple-500 bg-purple-50 text-purple-700'
@@ -183,13 +259,10 @@ export default function AdminManagementPage() {
                   type="text"
                   value={targetAddress}
                   onChange={(e) => setTargetAddress(e.target.value)}
-                  className={`w-full border-2 rounded-xl px-4 py-3 font-mono text-sm transition-all outline-none ${
-                    targetAddress && !addressValid
-                      ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-                      : 'border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200'
-                  }`}
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-mono text-sm transition-all outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                   placeholder="0x..."
                   required
+                  disabled={isPending || isConfirming}
                 />
                 {targetAddress && !addressValid && (
                   <p className="text-red-500 text-xs mt-2">Invalid Ethereum address</p>
@@ -213,20 +286,7 @@ export default function AdminManagementPage() {
             </div>
           </form>
 
-          {/* Error */}
-          {error && (
-            <div className="mt-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 animate-fade-in">
-              <div className="flex items-start space-x-3">
-                <svg className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <h3 className="font-semibold text-red-800 mb-1">Transaction Failed</h3>
-                  <p className="text-red-700 text-sm">{error.message}</p>
-                </div>
-              </div>
-            </div>
-          )}
+          {error && <ErrorDisplay error={error} onDismiss={clearError} />}
 
           {/* Success */}
           {isSuccess && (
@@ -243,7 +303,7 @@ export default function AdminManagementPage() {
               <div className="bg-white rounded-xl p-4">
                 <p className="text-xs font-semibold text-gray-500 mb-1">Transaction Hash</p>
                 <a
-                  href={`https://sepolia.etherscan.io/tx/${txHash}`}
+                  href={`https://sepolia.basescan.org/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 font-mono text-xs break-all hover:underline"
